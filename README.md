@@ -146,7 +146,7 @@ This function call loop for you in an infinite blocking loop. It is useful for t
 
 timeout: Maximum number of milliseconds to wait for network activity in the select() call before timing out. Set to 0 for instant return.
 
-# Publishing amd subscribing
+# Publishing and subscribing
 
 ## publish
 ```
@@ -183,22 +183,29 @@ Unsubscribe from a topic.
 * sub: the unsubscription pattern.
 
 # Callbacks
+
+## connect-callback
 ```
 (set! (connect-callback client) (lambda (client err) ...))
 ```
 
 Set the connect callback. This is called when the broker sends a CONNACK message in response to a connection.
 
-* err: error condition, if #f - connection is success.
+* err: error condition, if eq? to MOSQ\_ERR\_SUCCESS - connection is success.
 
+## disconnect-callback
 ```
-(set! (disconnect-callback client) (lambda (client unexpected?) ...))
+(set! (disconnect-callback client) (lambda (client err) ...))
 ```
 
-Set the disconnect callback. This is called when the broker has received the DISCONNECT command and has disconnected the client.
+Set the disconnect callback. This is called when the broker has
+received the DISCONNECT command and has disconnected the client.
 
-* unexpected?: boolean value indicating the reason for the disconnect. A value of #f means the client has called disconnect. #t indicates that the disconnect is unexpected.
+* err: value indicating the reason for the disconnect. A value of
+  MOSQ\_ERR\_SUCCESS means the client has called disconnect. Other
+  values indicate that the disconnect is unexpected.
 
+## publish-callback
 ```
 (set! (publish-callback client) (lambda (client mid) ...))
 ```
@@ -207,14 +214,17 @@ Set the publish callback. This is called when a message initiated with mosquitto
 
 * mid: the message id of the sent message.
 
+## message-callback
 ```
 (set! (message-callback client) (lambda (client message) ...))
 ```
 
-Set the message callback. This is called when a message is received from the broker.
+Set the message callback. This is called when a message is received
+from the broker.
 
 * message: the message record.
 
+## subscribe-callback
 ```
 (set! (subscribe-callback client) (lambda (client mid) ...))
 ```
@@ -223,6 +233,7 @@ Set the subscribe callback. This is called when the broker responds to a subscri
 
 * mid: the message id of the subscribe message.
 
+## unsubscribe-callback
 ```
 (set! (unsubscribe-callback client) (lambda (client mid) ...))
 ```
@@ -231,6 +242,7 @@ Set the unsubscribe callback. This is called when the broker responds to a unsub
 
 * mid: the message id of the unsubscribe message.
 
+## log-callback
 ```
 (set! (log-callback client) (lambda (client level str) ...))
 ```
