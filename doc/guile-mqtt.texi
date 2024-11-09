@@ -1,0 +1,360 @@
+\input texinfo    @c -*- texinfo -*-
+@c %**start of header
+@setfilename guile-mqtt.info
+@settitle Guile MQTT
+@documentencoding UTF-8
+@documentlanguage en
+@syncodeindex pg cp
+@c %**end of header
+
+@dircategory The Algorithmic Language Scheme
+@direntry
+* Guile MQTT: (guile-mqtt).	Guile bindings for the libmosquitto MQTT client library.
+@end direntry
+
+@finalout
+@titlepage
+@title Guile MQTT
+@author Mikael Djurfeldt (@email{mikael@@djurfeldt.com})
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Guile MQTT
+
+This is the manual for Guile MQTT,
+@url{https://gnu.org/software/guile,GNU Guile} bindings for the
+libmosquitto MQTT client library.
+@end ifnottex
+
+@menu
+* Introduction::                  What is guile-mqtt?
+* Status::                        Status of development of guile-mqtt.
+* Installation::                  Setting up guile-mqtt.
+* API reference::                 The Guile MQTT API.
+* Contributing::                  Bug fixes and improvements welcome!
+* License::                       Copying, distributing, and using this text.
+* Index::
+@end menu
+
+@node Introduction
+@chapter Introduction
+Guile MQTT provides bindings for the libmosquitto MQTT client library.
+
+@node Status
+@section Status
+
+@node Installation
+@section Installation
+
+@node API reference
+@section API reference
+
+@menu
+* The mosquitto client object::
+* Connecting and disconnecting::
+* Publishing@comma{} subscribing and unsubscribing::
+* Network loop::
+* Callbacks::
+@end menu
+
+@node The mosquitto client object
+@subsection The mosquitto client object
+
+@deffn {Procedure} make-client [#:id] [#:clean-session] [#:user-data] @
+       [#:on-connect] [#:on-disconnect] [#:on-publish] [#:on-message] @
+       [#:on-subscribe] [#:on-unsubscribe] [#:on-log]
+Return a new MQTT client. This is a GOOPS instance of the class
+@code{<mosquitto-client>}.
+
+If supplied, @var{id} is a string to use as the client id. If #f or
+not supplied, a random client id will be generated. If id is #f,
+clean-session must be #t.
+
+If supplied, @var{clean-session} should be set to #t, which is the
+default, to instruct the broker to clean all messages and
+subscriptions on disconnect, #f to instruct it to keep them. Note that
+a client will never discard its own outgoing messages on
+disconnect. Calling connect or reconnect will cause the
+messages to be resent. Use reinitialise to reset a client to its
+original state. Must be set to #t if the id parameter is #f.
+
+@var{user-data} can be any additional data that the user wants to associate
+with the client instance. This data is passed along with the client
+argument to any specified callback functions.
+
+@var{on-connect} is an optional callback that will be invoked when the
+client successfully connects to the broker. This callback can also be
+set using the @code{connect-callback} setter.
+
+@var{on-disconnect} is an optional callback that is triggered when the
+client disconnects from the broker, intentionally or otherwise. This
+callback can also be set using the @code{disconnect-callback} setter.
+
+@var{on-publish} is a callback that is triggered when a message is
+successfully published. This callback can also be set using the
+@code{publish-callback} setter.
+
+@var{on-message} is called whenever a message is received on a subscribed
+topic. This callback can also be set using the
+@code{message-callback} setter.
+
+@var{on-subscribe} is triggered when the client successfully subscribes to a
+topic. This callback can also be set using the
+@code{subscribe-callback} setter.
+
+@var{on-unsubscribe} is invoked when the client unsubscribes from a
+topic. This callback can also be set using the
+@code{unsubscribe-callback} setter.
+
+@var{on-log} is an optional logging callback that provides detailed
+information on the client’s internal operations, errors, and debugging
+information. This callback can also be set using the
+@code{log-callback} setter.
+@end deffn
+
+@node Connecting and disconnecting
+@subsection Connecting and disconnecting
+
+@deffn {Procedure} connect client host [#:port] [#:keepalive] @
+       [#:bind-address] [#:username] [#:password] [#:tls-cafile] @
+       [#:tls-capath] [#:tls-certfile] [#:tls-keyfile] @
+       [#:tls-insecure] [#:tls-ocsp-required] [#:tls-use-os-certs] @
+       [#:tls-alpn] [#:socks5-host] [#:socks5-port] @
+       [#:socks5-username] [#:socks5-password] [#:reconnect-delay] @
+       [#:reconnect-delay-max] [#:reconnect-exp-backoff] [#:tcp-nodelay]
+Establish a connection to an MQTT broker with the specified client
+instance. The parameters control the connection settings, security
+configurations, and reconnection behavior.
+
+@strong{Currently, only the following options are implemented:}
+
+@var{host} is the hostname or IP address of the broker to connect to.
+
+@var{port} specifies the network port for connection, defaulting to
+1883 if not provided.
+
+@var{keepalive} sets the number of seconds the broker should wait to
+send a PING message if no messages have been exchanged within that
+period.
+
+@ignore
+@var{bind-address} is the hostname or IP address of the local network
+interface to bind to for the connection.
+@end ignore
+
+@var{username} specifies the username as a string for authentication,
+or #f to disable authentication.
+
+@var{password} sets the password as a string to accompany a valid
+username; use #f if only a username is needed for authentication.
+
+@ignore
+@var{tls-cafile} is the path to a file containing PEM-encoded CA
+certificate files. Either @var{tls-cafile} or @var{tls-capath} must be
+set.
+
+@var{tls-capath} provides the path to a directory containing
+PEM-encoded CA certificate files. Either @var{tls-cafile} or
+@var{tls-capath} must be set.
+
+@var{tls-certfile} specifies the path to a PEM-encoded certificate
+file for the client. If #f, @var{tls-keyfile} must also be #f, and no
+client certificate will be used.
+
+@var{tls-keyfile} is the path to a PEM-encoded private key file for
+the client. If #f, @var{tls-certfile} must also be #f, and no client
+certificate will be used.
+
+@var{tls-ocsp-required} determines if OCSP checking is mandatory for
+TLS connections. Set to #t to enable OCSP checking or #f to disable it
+(default).
+
+@var{tls-use-os-certs} indicates whether to load and trust OS-provided
+CA certificates for TLS connections. Set to #t to use OS CA certs or
+#f (default) to use manually specified CA certs.
+
+@var{tls-alpn} allows configuration of the ALPN option when the broker
+provides multiple services, such as MQTT and WebSockets, on a single
+TLS port.
+
+@var{socks5-host} is the SOCKS5 proxy host for connecting through a
+proxy.
+
+@var{socks5-port} specifies the SOCKS5 proxy port, defaulting to 1080.
+
+@var{socks5-username} sets the username for SOCKS5 proxy
+authentication, if required.
+
+@var{socks5-password} provides the password for SOCKS5 proxy
+authentication when a username is set.
+
+@var{reconnect-delay} sets the number of seconds to wait between
+reconnection attempts.
+
+@var{reconnect-delay-max} defines the maximum number of seconds
+between reconnection attempts.
+
+@var{reconnect-exp-backoff} enables exponential backoff for reconnect
+attempts when set to #t.
+
+@var{tcp-nodelay} controls whether to disable Nagle’s algorithm on
+client sockets. Set to #t to reduce latency for individual messages,
+potentially increasing packet count, or #f (default) to keep Nagle
+enabled.
+@end ignore
+
+@end deffn
+
+@deffn {Procedure} disconnect client
+Disconnect the specified client from the broker.
+@end deffn
+
+@node Publishing@comma{} subscribing and unsubscribing
+@subsection Publishing, subscribing and unsubscribing
+
+@deffn {Procedure} publish client topic payload [#:qos] [#:retain]
+Publish a message to a specified @var{topic} with the given @var{payload}.
+
+@var{topic} is a null-terminated string indicating the publication topic.
+
+@var{payload} is the blob or string data to be sent.
+
+@var{qos} defines the Quality of Service level for the message, with an integer value of 0, 1, or 2. The default is 0.
+
+@var{retain} should be set to #t to make the message retained by the broker.
+
+The function returns a message ID (@var{mid}) for tracking the sent message.
+@end deffn
+
+@deffn {Procedure} subscribe client sub [#:qos]
+Subscribe to a topic with a specified subscription pattern @var{sub}.
+
+@var{qos} specifies the requested Quality of Service level for this subscription. The default is 0.
+@end deffn
+
+@deffn {Procedure} unsubscribe client sub
+Unsubscribe from a topic specified by the subscription pattern @var{sub}.
+@end deffn
+
+@node Network loop
+@subsection Network loop
+
+@deffn {Procedure} loop client [#:timeout]
+Run the main network loop for the client, which must be called
+frequently to maintain communication between the client and
+broker. This function processes incoming data if present and attempts
+to send any remaining outgoing messages, particularly those with QoS >
+0. Do not call this inside a callback.
+
+@var{timeout} specifies the maximum number of milliseconds to wait for
+network activity in the @code{select()} call before timing out. Set to
+0 for an instant return. The default is 1000 milliseconds.
+@end deffn
+
+@deffn {Procedure} loop-forever client [#:timeout]
+Runs @code{loop} continuously in an infinite, blocking loop. Useful
+when the MQTT client loop is the sole focus of the program, as it
+manages reconnections if the server connection is lost. If
+@code{disconnect} is called in a callback, the function will return.
+
+@var{timeout} specifies the maximum number of milliseconds to wait for
+network activity in the @code{select()} call before timing out. Set to
+0 for an instant return. The default is 1000 milliseconds.
+@end deffn
+
+@node Callbacks
+@subheading Callbacks
+
+@deffn {Setter} connect-callback (set! (connect-callback client) callback)
+Set the connect callback for the @var{client}. This callback is called
+when a CONNACK message is received from the broker in response to a
+connection attempt.
+
+@var{callback} should be a function of the form @code{(lambda (client
+err) ...)}, where @var{err} indicates an error condition. A value of
+#f indicates a successful connection.
+@end deffn
+
+@deffn {Setter} disconnect-callback (set! (disconnect-callback client) callback)
+Set the disconnect callback for the @var{client}. This is called when
+the client disconnects from the broker, either intentionally or
+unexpectedly.
+
+@var{callback} should be a function of the form @code{(lambda (client
+unexpected?) ...)}, where @var{unexpected?} is #f for a planned
+disconnect (via @code{disconnect}) or #t for an unexpected
+disconnect.
+@end deffn
+
+@deffn {Setter} publish-callback (set! (publish-callback client) callback)
+Set the publish callback for the @var{client}. This is triggered when
+a message sent using @code{publish} has successfully reached the
+broker.
+
+@var{callback} should be a function of the form @code{(lambda (client
+mid) ...)}, where @var{mid} is the message ID of the published
+message.
+@end deffn
+
+@deffn {Setter} message-callback (set! (message-callback client) callback)
+Set the message callback for the @var{client}. This callback is
+triggered when a message is received from the broker.
+
+@var{callback} should be a function of the form @code{(lambda (client
+message) ...)}, where @var{message} represents the received message.
+@end deffn
+
+@deffn {Setter} subscribe-callback (set! (subscribe-callback client) callback)
+Set the subscribe callback for the @var{client}. This callback is
+triggered when the broker responds to a subscription request.
+
+@var{callback} should be a function of the form @code{(lambda (client
+mid) ...)}, where @var{mid} is the message ID of the subscription
+request.
+@end deffn
+
+@deffn {Setter} unsubscribe-callback (set! (unsubscribe-callback client) callback)
+Set the unsubscribe callback for the @var{client}. This is called when
+the broker responds to an unsubscribe request.
+
+@var{callback} should be a function of the form @code{(lambda (client
+mid) ...)}, where @var{mid} is the message ID of the unsubscribe
+request.
+@end deffn
+
+@deffn {Setter} log-callback (set! (log-callback client) callback)
+Set the logging callback for the @var{client}. This callback provides
+event logging from the client library, useful for debugging.
+
+@var{callback} should be a function of the form @code{(lambda (client
+level str) ...)}, where @var{level} is the log message level (one of
+'log-info, 'log-notice, 'log-warning, 'log-err, 'log-debug) and
+@var{str} is the log message string.
+@end deffn
+
+@node Contributing
+@chapter Contributing
+
+I'm happy to receive fixes and improvements. Or maybe you want to
+become a co-author? Issues can be filed and pull requests can be
+submitted on @url{https://github.com/mdjurfeldt/guile-mqtt,Github}.
+
+@node License
+@chapter License
+
+@emph{(C) 2024 Mikael Djurfeldt}
+
+@emph{This manual is released under the terms of the following
+license:}
+
+@include fdl.texi
+
+@node Index
+@unnumbered Index
+
+@printindex fn
+
+@bye
