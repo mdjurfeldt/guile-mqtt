@@ -17,6 +17,21 @@ The user can extend the client class by inheritance.
 * [NYACC](https://www.nongnu.org/nyacc/) by Matt Wette
 * [libmosquitto](https://github.com/eclipse-mosquitto/mosquitto)
 
+# Installation
+
+If installing from a tar archive, do
+```
+./configure
+make install
+```
+
+If installing from a cloned git repository, do
+```
+./bootstrap.sh
+./configure
+make install
+```
+
 # Example
 
 This example, as well as the Guile libmosquitto bindings themselves,
@@ -66,6 +81,9 @@ See further examples under the directory [examples](https://github.com/mdjurfeld
 * on-unsubscribe: Unsubscribe callback. See unsubscribe-callback
 * on-log: Logging callback. See log-callback
 
+# Connecting and disconnecting
+
+## connect
 ```
 (connect client host #:key (port 1883) (keepalive 5) bind-address username password tls-cafile tls-capath tls-certfile tls-keyfile tls-insecure tls-ocsp-required tls-use-os-certs tls-alpn socks5-host (socks5-port 1080) socks5-username socks5-password (reconnect-delay 1) (reconnect-delay-max 10) reconnect-exp-backoff tcp-nodelay)
 ```
@@ -92,51 +110,69 @@ See further examples under the directory [examples](https://github.com/mdjurfeld
 * reconnect-exp-backoff: use exponential backoff between reconnect attempts. Set to #t to enable exponential backoff.
 * tcp-nodelay: Set to #t to disable Nagle’s algorithm on client sockets. This has the effect of reducing latency of individual messages at the potential cost of increasing the number of packets being sent. Defaults to #f, which means Nagle remains enabled.
 
+## disconnect
 ```
 (disconnect client)
 ```
 
 Disconnect from the broker.
 
+# Network loop
+
+## loop
 ```
 (loop client #:optional (timeout 1000))
 ```
 
-The main network loop for the client. This must be called frequently to keep communications between the client and broker working. This is carried out by loop-forever, which are the recommended ways of handling the network loop. It must not be called inside a callback. If incoming data is present it will then be processed. Outgoing commands, from e.g. publish, are normally sent immediately that their function is called, but this is not always possible. loop will also attempt to send any remaining outgoing messages, which also includes commands that are part of the flow for messages with QoS>0.
+The main network loop for the client. This must be called frequently
+to keep communications between the client and broker working. This is
+carried out by loop-forever, which are the recommended ways of
+handling the network loop. It must not be called inside a callback. If
+incoming data is present it will then be processed. Outgoing commands,
+from e.g. publish, are normally sent immediately that their function
+is called, but this is not always possible. loop will also attempt to
+send any remaining outgoing messages, which also includes commands
+that are part of the flow for messages with QoS>0.
 
-    timeout: Maximum number of milliseconds to wait for network activity in the select() call before timing out. Set to 0 for instant return.
+timeout: Maximum number of milliseconds to wait for network activity
+in the select() call before timing out. Set to 0 for instant return.
 
+## loop-forever
 ```
 (loop-forever client #:optional (timeout 1000))
 ```
 
 This function call loop for you in an infinite blocking loop. It is useful for the case where you only want to run the MQTT client loop in your program. It handles reconnecting in case server connection is lost. If you call disconnect in a callback it will return.
 
-    timeout: Maximum number of milliseconds to wait for network activity in the select() call before timing out. Set to 0 for instant return.
+timeout: Maximum number of milliseconds to wait for network activity in the select() call before timing out. Set to 0 for instant return.
 
+# Publishing amd subscribing
+
+## publish
 ```
 (publish client topic payload #:key (qos 0) retain)
 ```
 
 Publish a message on a given topic.
 
-    topic: null terminated string of the topic to publish to.
-    payload: blob or string of data to send.
-    qos: integer value 0, 1 or 2 indicating the Quality of Service to be used for the message.
-    retain: set to #t to make the message retained.
+* topic: null terminated string of the topic to publish to.
+* payload: blob or string of data to send.
+* qos: integer value 0, 1 or 2 indicating the Quality of Service to be used for the message.
+* retain: set to #t to make the message retained.
 
 returns:
 
-    mid: message id of sent message. Note that although the MQTT protocol doesn’t use message ids for messages with QoS=0, libmosquitto assigns them message ids so they can be tracked with this parameter.
+* mid: message id of sent message. Note that although the MQTT protocol doesn’t use message ids for messages with QoS=0, libmosquitto assigns them message ids so they can be tracked with this parameter.
 
+## subscribe
 ```
 (subscribe client sub #:key (qos 0))
 ```
 
 Subscribe to a topic.
 
-    sub: the subscription pattern.
-    qos: the requested Quality of Service for this subscription.
+* sub: the subscription pattern.
+* qos: the requested Quality of Service for this subscription.
 
 ```
 (unsubscribe client sub)
@@ -144,16 +180,16 @@ Subscribe to a topic.
 
 Unsubscribe from a topic.
 
-    sub: the unsubscription pattern.
+* sub: the unsubscription pattern.
 
-* Callbacks
+# Callbacks
 ```
 (set! (connect-callback client) (lambda (client err) ...))
 ```
 
 Set the connect callback. This is called when the broker sends a CONNACK message in response to a connection.
 
-    err: error condition, if #f - connection is success.
+* err: error condition, if #f - connection is success.
 
 ```
 (set! (disconnect-callback client) (lambda (client unexpected?) ...))
@@ -161,7 +197,7 @@ Set the connect callback. This is called when the broker sends a CONNACK message
 
 Set the disconnect callback. This is called when the broker has received the DISCONNECT command and has disconnected the client.
 
-    unexpected?: boolean value indicating the reason for the disconnect. A value of #f means the client has called disconnect. #t indicates that the disconnect is unexpected.
+* unexpected?: boolean value indicating the reason for the disconnect. A value of #f means the client has called disconnect. #t indicates that the disconnect is unexpected.
 
 ```
 (set! (publish-callback client) (lambda (client mid) ...))
@@ -169,7 +205,7 @@ Set the disconnect callback. This is called when the broker has received the DIS
 
 Set the publish callback. This is called when a message initiated with mosquitto_publish has been sent to the broker successfully.
 
-    mid: the message id of the sent message.
+* mid: the message id of the sent message.
 
 ```
 (set! (message-callback client) (lambda (client message) ...))
@@ -177,7 +213,7 @@ Set the publish callback. This is called when a message initiated with mosquitto
 
 Set the message callback. This is called when a message is received from the broker.
 
-    message: the message record.
+* message: the message record.
 
 ```
 (set! (subscribe-callback client) (lambda (client mid) ...))
@@ -185,7 +221,7 @@ Set the message callback. This is called when a message is received from the bro
 
 Set the subscribe callback. This is called when the broker responds to a subscription request.
 
-    mid: the message id of the subscribe message.
+* mid: the message id of the subscribe message.
 
 ```
 (set! (unsubscribe-callback client) (lambda (client mid) ...))
@@ -193,7 +229,7 @@ Set the subscribe callback. This is called when the broker responds to a subscri
 
 Set the unsubscribe callback. This is called when the broker responds to a unsubscription request.
 
-    mid: the message id of the unsubscribe message.
+* mid: the message id of the unsubscribe message.
 
 ```
 (set! (log-callback client) (lambda (client level str) ...))
@@ -201,9 +237,9 @@ Set the unsubscribe callback. This is called when the broker responds to a unsub
 
 Set the logging callback. This should be used if you want event logging information from the client library.
 
-    level: the log message level from the values: 'log-info 'log-notice 'log-warning 'log-err 'log-debug
-    str: the message string
+* level: the log message level from the values: 'log-info 'log-notice 'log-warning 'log-err 'log-debug
+* str: the message string
 
-* Caveats
+# Caveats
 
 MQTT v5 not supported yet.
