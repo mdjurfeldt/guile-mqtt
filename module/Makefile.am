@@ -2,13 +2,16 @@ GUILE_WARNINGS = -W2
 moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
 godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
-SOURCES =					\
-  ffi/mosquitto.ffi				\
+SCM_SOURCES =					\
   ffi/mosquitto.scm				\
   mosquitto/client.scm
 
+SOURCES =					\
+  ffi/mosquitto.ffi				\
+  $(SCM_SOURCES)
+
 SUFFIXES = .scm .go
-GOBJECTS = $(filter-out %.ffi, $(SOURCES:%.scm=%.go))
+GOBJECTS = $(SCM_SOURCES:%.scm=%.go)
 CLEANFILES = $(GOBJECTS)
 EXTRA_DIST = $(SOURCES)
 nobase_mod_DATA = $(SOURCES)
