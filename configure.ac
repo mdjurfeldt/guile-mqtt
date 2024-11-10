@@ -1,4 +1,4 @@
-AC_INIT([guile-mqtt], [0.1.0])
+AC_INIT([guile-mqtt], [0.1.1])
 AM_INIT_AUTOMAKE()
 
 changequote(<, >)
