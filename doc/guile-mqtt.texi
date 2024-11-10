@@ -140,10 +140,8 @@ configurations, and reconnection behavior.
 send a PING message if no messages have been exchanged within that
 period.
 
-@ignore
 @var{bind-address} is the hostname or IP address of the local network
 interface to bind to for the connection.
-@end ignore
 
 @var{username} specifies the username as a string for authentication,
 or #f to disable authentication.
@@ -151,7 +149,6 @@ or #f to disable authentication.
 @var{password} sets the password as a string to accompany a valid
 username; use #f if only a username is needed for authentication.
 
-@ignore
 @var{tls-cafile} is the path to a file containing PEM-encoded CA
 certificate files. Either @var{tls-cafile} or @var{tls-capath} must be
 set.
@@ -168,6 +165,7 @@ client certificate will be used.
 the client. If #f, @var{tls-certfile} must also be #f, and no client
 certificate will be used.
 
+@ignore
 @var{tls-ocsp-required} determines if OCSP checking is mandatory for
 TLS connections. Set to #t to enable OCSP checking or #f to disable it
 (default).

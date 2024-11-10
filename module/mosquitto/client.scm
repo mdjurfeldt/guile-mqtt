@@ -100,13 +100,29 @@
 (define-generic connect)
 
 (define-method (connect (client <mosquitto-client>) (host <string>) . args)
-  (define* (connect #:key (port 1883) (keepalive 60) username password)
+  (define* (connect #:key (port 1883) (keepalive 60) bind-address
+		    username password tls-cafile tls-capath
+		    tls-certfile tls-keyfile)
     (if username
 	(begin
 	  (if (not password)
 	      (error "connect: must supply password"))
 	  (mosquitto_username_pw_set (mosq client) username password)))
-    (mosquitto_connect (mosq client) host port keepalive))
+    (if (or tls-cafile tls-capath tls-certfile tls-keyfile)
+	(begin
+	  (if (not (or tls-cafile tls-capath))
+	      (error "connect: either tls-cafile or tls-capth must be given"))
+	  (if (not (and tls-certfile tls-keyfile))
+	      (error "connect: both tls-certfile amd tls-keyfile mustbe given"))
+	  (mosquitto_tls_set (mosq client)
+			     (or tls-cafile %null-pointer)
+			     (or tls-capath %null-pointer)
+			     tls-certfile
+			     tls-keyfile
+			     %null-pointer)))
+    (if bind-address
+	(mosquitto_connect_bind (mosq client) host port keepalive bind-address)
+	(mosquitto_connect (mosq client) host port keepalive)))
   (apply connect args))
 
 (define-method (disconnect (client <mosquitto-client>))

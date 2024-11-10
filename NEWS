@@ -6,8 +6,17 @@ For bug reports please create an issue at
 https://github.com/mdjurfeldt/guile-mqtt/issues
 
 
+2024-11-10 v0.1.1
+* connect method: Added support for new options.
+
+In the connect method, the following new options are supported:
+
+#:bind-address #:tls-cafile #:tls-capath #:tls-certfile #:tls-keyfile
+
+
 2024-11-09 v0.1.0
-	* Initial release
+* Initial release
+
 
 Copyright information:
 
