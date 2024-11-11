@@ -102,7 +102,8 @@
 (define-method (connect (client <mosquitto-client>) (host <string>) . args)
   (define* (connect #:key (port 1883) (keepalive 60) bind-address
 		    username password tls-cafile tls-capath
-		    tls-certfile tls-keyfile)
+		    tls-certfile tls-keyfile tls-ocsp-required
+		    tls-use-os-certs tls-alpn)
     (if username
 	(begin
 	  (if (not password)
@@ -119,7 +120,19 @@
 			     (or tls-capath %null-pointer)
 			     tls-certfile
 			     tls-keyfile
-			     %null-pointer)))
+			     %null-pointer)
+	  (if tls-ocsp-required
+	      (mosquitto_int_option (mosq client)
+				    'MOSQ_OPT_TLS_OCSP_REQUIRED
+				    1))
+	  (if tls-use-os-certs
+	      (mosquitto_int_option (mosq client)
+				    'MOSQ_OPT_TLS_USE_OS_CERTS
+				    1))
+	  (if tls-alpn
+	      (mosquitto_string_option (mosq client)
+				       'MOSQ_OPT_TLS_ALPN
+				       tls-alpn))))
     (if bind-address
 	(mosquitto_connect_bind (mosq client) host port keepalive bind-address)
 	(mosquitto_connect (mosq client) host port keepalive)))
