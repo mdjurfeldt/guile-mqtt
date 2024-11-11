@@ -97,13 +97,16 @@
 
 (define connect guile:connect)
 
+;;; This will pickup the old definition of connect as a default method
 (define-generic connect)
 
 (define-method (connect (client <mosquitto-client>) (host <string>) . args)
   (define* (connect #:key (port 1883) (keepalive 60) bind-address
 		    username password tls-cafile tls-capath
 		    tls-certfile tls-keyfile tls-ocsp-required
-		    tls-use-os-certs tls-alpn)
+		    tls-use-os-certs tls-alpn socks5-host socks5-port
+		    socks5-username socks5-password reconnect-delay
+		    reconnect-delay-max reconnect-exp-backoff tcp-nodelay)
     (if username
 	(begin
 	  (if (not password)
@@ -133,6 +136,21 @@
 	      (mosquitto_string_option (mosq client)
 				       'MOSQ_OPT_TLS_ALPN
 				       tls-alpn))))
+    (if socks5-host
+	(mosquitto_socks5_set (mosq client)
+			      socks5-host
+			      (or socks5-port 1080)
+			      (or socks5-username %null-pointer)
+			      (or socks5-password %null-pointer)))
+    (if (or reconnect-delay reconnect-delay-max reconnect-exp-backoff)
+	(mosquitto_reconnect_delay_set (mosq client)
+				       (or reconnect-delay 1)
+				       (or reconnect-delay-max 10)
+				       reconnect-exp-backoff))
+    (if tcp-nodelay
+	(mosquitto_int_option (mosq client)
+			      'MOSQ_OPT_TCP_NODELAY
+			      1))
     (if bind-address
 	(mosquitto_connect_bind (mosq client) host port keepalive bind-address)
 	(mosquitto_connect (mosq client) host port keepalive)))
