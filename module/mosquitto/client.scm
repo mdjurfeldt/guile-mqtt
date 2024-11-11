@@ -149,7 +149,7 @@
   (apply subscribe args))
 
 (define-method (unsubscribe (client <mosquitto-client>) (topic <string>))
-  (mosquitto_subscribe (mosq client) %null-pointer topic))
+  (mosquitto_unsubscribe (mosq client) %null-pointer topic))
 
 ;;; Network loop
 
