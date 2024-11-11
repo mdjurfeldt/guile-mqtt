@@ -11,9 +11,7 @@ names. (The specialization is done through the arguments.)
 
 The user can extend the client class by inheritance.
 
-This is still very much beta software. Also, not all method options in
-this README are yet implemented. See the reference manual for better
-indication of what is implemented.
+This is still beta software.
 
 # Dependencies
 
