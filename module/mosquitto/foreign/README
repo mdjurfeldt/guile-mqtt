@@ -1,0 +1,6 @@
+This directory is populated by modified copies of
+
+nyacc/foreign/cdata.scm
+nyacc/foreign/arch-info.scm
+
+These are created from NYACC by module/Makefile.am.

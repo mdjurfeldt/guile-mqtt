@@ -2,7 +2,12 @@ GUILE_WARNINGS = -W2
 moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
 godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
+COPIED_SOURCES =				\
+  mosquitto/foreign/arch-info.scm		\
+  mosquitto/foreign/cdata.scm
+
 SCM_SOURCES =					\
+  $(COPIED_SOURCES)				\
   ffi/mosquitto.scm				\
   mosquitto/client.scm
 
@@ -30,3 +35,10 @@ $(guile_install_go_files): install-nobase_modDATA
 
 ffi/mosquitto.scm: ffi/mosquitto.ffi
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile-ffi "$<"
+
+$(COPIED_SOURCES):
+	src=`basename $@`; \
+	sed -e 's/(nyacc/(mosquitto/' \
+	< "`$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE) \
+	  -c "(display (search-path %load-path \\"nyacc/foreign/$$src\\"))"`" \
+	> $@

@@ -18,8 +18,11 @@ indication of what is implemented.
 # Dependencies
 
 * [Guile Scheme](https://www.gnu.org/software/guile/)
-* [NYACC](https://www.nongnu.org/nyacc/) by Matt Wette
 * [libmosquitto](https://github.com/eclipse-mosquitto/mosquitto)
+
+If installing from a cloned git repository you will also need
+
+* [NYACC](https://www.nongnu.org/nyacc/) >= v2.01.3 by Matt Wette
 
 # Installation
 

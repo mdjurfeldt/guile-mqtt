@@ -24,7 +24,7 @@
   #:use-module (oop goops)
   #:use-module (ffi mosquitto)
   #:use-module (system foreign)
-  #:use-module (nyacc foreign cdata)
+  #:use-module (mosquitto foreign cdata)
   #:use-module ((guile) #:select (connect) #:prefix guile:)
   #:export (<mosquitto-client>
 	    make-client user-data client
