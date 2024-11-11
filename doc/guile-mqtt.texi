@@ -165,7 +165,6 @@ client certificate will be used.
 the client. If #f, @var{tls-certfile} must also be #f, and no client
 certificate will be used.
 
-@ignore
 @var{tls-ocsp-required} determines if OCSP checking is mandatory for
 TLS connections. Set to #t to enable OCSP checking or #f to disable it
 (default).
@@ -202,7 +201,6 @@ attempts when set to #t.
 client sockets. Set to #t to reduce latency for individual messages,
 potentially increasing packet count, or #f (default) to keep Nagle
 enabled.
-@end ignore
 
 @end deffn
 
