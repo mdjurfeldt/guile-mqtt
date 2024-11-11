@@ -31,14 +31,14 @@ guile_install_go_files = install-nobase_goDATA
 $(guile_install_go_files): install-nobase_modDATA
 
 .scm.go:
-	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"
+	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$(srcdir)/$<"
 
 ffi/mosquitto.scm: ffi/mosquitto.ffi
-	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile-ffi "$<"
+	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile-ffi -o "$(srcdir)/$@" "$<"
 
 $(COPIED_SOURCES):
 	src=`basename $@`; \
 	sed -e 's/(nyacc/(mosquitto/' \
 	< "`$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE) \
 	  -c "(display (search-path %load-path \\"nyacc/foreign/$$src\\"))"`" \
-	> $@
+	> "$(srcdir)/$@"
