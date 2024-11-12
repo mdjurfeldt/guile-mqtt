@@ -6,6 +6,14 @@ For bug reports please create an issue at
 https://github.com/mdjurfeldt/guile-mqtt/issues
 
 
+2024-11-12 v0.2.1
+
+* Bugfix: Removed last reference to (nyacc foreign cdata) in (ffi
+  mosquitto) such that (mosquitto client) gets independent of NYACC
+
+* Cleanups
+
+
 2024-11-12 v0.2.0
 
 * All functionality of Chicken Scheme mosquitto bindings now
