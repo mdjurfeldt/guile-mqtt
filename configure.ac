@@ -17,7 +17,7 @@ GUILE_PROGS
 # Check for Nyacc
 AC_MSG_CHECKING([for nyacc])
 have_nyacc=""
-NYACC_VERSION=`$GUILE -c '(display (@ (nyacc version) *nyacc-version*))'`
+NYACC_VERSION=`$GUILE -c '(display (@ (nyacc version) *nyacc-version*))' 2>/dev/null`
 if test $? = 1; then
   if test ! -e $srcdir/module/mosquitto/foreign/cdata.scm; then
     AC_MSG_ERROR([Nyacc is required but was not found. Please install Nyacc >= 2.01.3 and try again.])
