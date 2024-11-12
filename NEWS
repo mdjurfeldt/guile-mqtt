@@ -6,6 +6,20 @@ For bug reports please create an issue at
 https://github.com/mdjurfeldt/guile-mqtt/issues
 
 
+2024-11-12 v0.2.0
+
+* All functionality of Chicken Scheme mosquitto bindings now
+  implemented and documented.
+
+* Distribute own copy of (... foreign cdata). NYACC is now not
+  required if building from a tar archive (as opposed to building from
+  a git repository clone).
+
+* Support make in separate build directory.
+
+* Bugfix: unsubscribe now works.
+
+
 2024-11-10 v0.1.1
 * connect method: Added support for new options.
 
