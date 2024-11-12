@@ -51,23 +51,23 @@ Kosenkov.
                           (lambda (client err)
                             (if (not (eq? err MOSQ_ERR_SUCCESS))
                                 (abort err)
-                                (display "Yay, we are connected!"))))))
+                                (display "Yay, we are connected!\n"))))))
   (set! (disconnect-callback client)
         (lambda (client err)
           (if (not (eq? err MOSQ_ERR_SUCCESS))
-            (display "Unexpected disconnect..."))))
+            (display "Unexpected disconnect...\n"))))
 
   (set! (message-callback client)
         (lambda (cl msg)
           (display (string->append "Topic: " (topic msg)
-                                   "Payload:" payload msg))
+                                   "Payload:" (payload msg)))
           (publish client "topic2" "message received, thanks!")))
   (connect client "localhost" #:username "mqtt-admin" #:password "mypass")
   (subscribe client "topic1")
   (loop-forever client))
 ```
 
-See further examples under the directory [examples](https://github.com/mdjurfeldt/guile-mqqt/tree/main/examples).
+See further examples under the directory [examples](https://github.com/mdjurfeldt/guile-mqtt/tree/main/examples).
 
 # API
 
