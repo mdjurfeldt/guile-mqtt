@@ -1,6 +1,6 @@
 ;;; mosquitto/client.scm --- Guile API to libmosquitto
 ;;;
-;;; Copyright (C) 2024 Free Software Foundation, Inc.
+;;; Copyright (C) 2024, 2025 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
