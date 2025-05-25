@@ -26,6 +26,7 @@
   #:use-module (system foreign)
   #:use-module (mosquitto foreign cdata)
   #:use-module ((guile) #:select (connect) #:prefix guile:)
+  #:use-module (rnrs bytevectors)
   #:export (<mosquitto-client>
 	    make-client user-data client
 	    connect disconnect
@@ -167,7 +168,7 @@
       (mosquitto_publish (mosq client)
 			 (cdata& mid)
 			 topic
-			 (string-length payload)
+			 (bytevector-length (string->utf8 payload))
 			 payload
 			 qos
 			 (bool->int retain))
