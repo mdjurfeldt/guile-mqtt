@@ -28,14 +28,14 @@
   #:use-module ((guile) #:select (connect) #:prefix guile:)
   #:use-module (rnrs bytevectors)
   #:export (<mosquitto-client>
-	    make-client user-data client
-	    connect disconnect
-	    publish subscribe unsubscribe
-	    loop loop-forever
-	    connect-callback disconnect-callback publish-callback
-	    message message-callback topic payload
-	    subscribe-callback unsubscribe-callback log-callback
-	    )
+            make-client user-data client
+            connect disconnect
+            publish subscribe unsubscribe
+            loop loop-forever
+            connect-callback disconnect-callback publish-callback
+            message message-callback topic payload
+            subscribe-callback unsubscribe-callback log-callback
+            )
   #:replace (connect)
   )
 
@@ -47,12 +47,12 @@
 (define mosq-guardian (make-guardian))
 
 (add-hook! after-gc-hook
-	   (lambda ()
-	     (let loop ((obj (mosq-guardian)))
-	       (if obj
-		   (begin
-		     (mosquitto_destroy mosq)
-		     (loop (mosq-guardian)))))))
+           (lambda ()
+             (let loop ((obj (mosq-guardian)))
+               (if obj
+                   (begin
+                     (mosquitto_destroy mosq)
+                     (loop (mosq-guardian)))))))
 
 (define-class <mosquitto-client> ()
   (mosq #:accessor mosq)
@@ -60,35 +60,35 @@
 
 (define-method (initialize (client <mosquitto-client>) initargs)
   (let ((id             (get-keyword #:id initargs #f))
-	(clean-session  (get-keyword #:clean-session initargs #t))
-	(on-connect     (get-keyword #:on-connect initargs #f))
-	(on-disconnect  (get-keyword #:on-disconnect initargs #f))
-	(on-publish     (get-keyword #:on-publish initargs #f))
-	(on-message     (get-keyword #:on-message initargs #f))
-	(on-subscribe   (get-keyword #:on-subscribe initargs #f))
-	(on-unsubscribe (get-keyword #:on-unsubscribe initargs #f))
-	(on-log         (get-keyword #:on-log initargs #f))
-	)
+        (clean-session  (get-keyword #:clean-session initargs #t))
+        (on-connect     (get-keyword #:on-connect initargs #f))
+        (on-disconnect  (get-keyword #:on-disconnect initargs #f))
+        (on-publish     (get-keyword #:on-publish initargs #f))
+        (on-message     (get-keyword #:on-message initargs #f))
+        (on-subscribe   (get-keyword #:on-subscribe initargs #f))
+        (on-unsubscribe (get-keyword #:on-unsubscribe initargs #f))
+        (on-log         (get-keyword #:on-log initargs #f))
+        )
     (if (not id)
-	(set! id (string-append "client-"
-				(number->string (random (expt 2 32) (random-state-from-platform)) 16))))
+        (set! id (string-append "client-"
+                                (number->string (random (expt 2 32) (random-state-from-platform)) 16))))
     (let ((obj (mosquitto_new id (bool->int clean-session) (scm->pointer client))))
       (mosq-guardian obj)
       (set! (mosq client) obj)
       (if on-connect
-	  (set! (connect-callback client) on-connect))
+          (set! (connect-callback client) on-connect))
       (if on-disconnect
-	  (set! (disconnect-callback client) on-disconnect))
+          (set! (disconnect-callback client) on-disconnect))
       (if on-publish
-	  (set! (publish-callback client) on-publish))
+          (set! (publish-callback client) on-publish))
       (if on-message
-	  (set! (message-callback client) on-message))
+          (set! (message-callback client) on-message))
       (if on-subscribe
-	  (set! (subscribe-callback client) on-subscribe))
+          (set! (subscribe-callback client) on-subscribe))
       (if on-unsubscribe
-	  (set! (unsubscribe-callback client) on-unsubscribe))
+          (set! (unsubscribe-callback client) on-unsubscribe))
       (if on-log
-	  (set! (log-callback client) on-log))))
+          (set! (log-callback client) on-log))))
   (next-method))
 
 (define (make-client . args)
@@ -103,58 +103,58 @@
 
 (define-method (connect (client <mosquitto-client>) (host <string>) . args)
   (define* (connect #:key (port 1883) (keepalive 60) bind-address
-		    username password tls-cafile tls-capath
-		    tls-certfile tls-keyfile tls-ocsp-required
-		    tls-use-os-certs tls-alpn socks5-host socks5-port
-		    socks5-username socks5-password reconnect-delay
-		    reconnect-delay-max reconnect-exp-backoff tcp-nodelay)
+                    username password tls-cafile tls-capath
+                    tls-certfile tls-keyfile tls-ocsp-required
+                    tls-use-os-certs tls-alpn socks5-host socks5-port
+                    socks5-username socks5-password reconnect-delay
+                    reconnect-delay-max reconnect-exp-backoff tcp-nodelay)
     (if username
-	(begin
-	  (if (not password)
-	      (error "connect: must supply password"))
-	  (mosquitto_username_pw_set (mosq client) username password)))
+        (begin
+          (if (not password)
+              (error "connect: must supply password"))
+          (mosquitto_username_pw_set (mosq client) username password)))
     (if (or tls-cafile tls-capath tls-certfile tls-keyfile)
-	(begin
-	  (if (not (or tls-cafile tls-capath))
-	      (error "connect: either tls-cafile or tls-capth must be given"))
-	  (if (not (and tls-certfile tls-keyfile))
-	      (error "connect: both tls-certfile amd tls-keyfile mustbe given"))
-	  (mosquitto_tls_set (mosq client)
-			     (or tls-cafile %null-pointer)
-			     (or tls-capath %null-pointer)
-			     tls-certfile
-			     tls-keyfile
-			     %null-pointer)
-	  (if tls-ocsp-required
-	      (mosquitto_int_option (mosq client)
-				    'MOSQ_OPT_TLS_OCSP_REQUIRED
-				    1))
-	  (if tls-use-os-certs
-	      (mosquitto_int_option (mosq client)
-				    'MOSQ_OPT_TLS_USE_OS_CERTS
-				    1))
-	  (if tls-alpn
-	      (mosquitto_string_option (mosq client)
-				       'MOSQ_OPT_TLS_ALPN
-				       tls-alpn))))
+        (begin
+          (if (not (or tls-cafile tls-capath))
+              (error "connect: either tls-cafile or tls-capth must be given"))
+          (if (not (and tls-certfile tls-keyfile))
+              (error "connect: both tls-certfile amd tls-keyfile mustbe given"))
+          (mosquitto_tls_set (mosq client)
+                             (or tls-cafile %null-pointer)
+                             (or tls-capath %null-pointer)
+                             tls-certfile
+                             tls-keyfile
+                             %null-pointer)
+          (if tls-ocsp-required
+              (mosquitto_int_option (mosq client)
+                                    'MOSQ_OPT_TLS_OCSP_REQUIRED
+                                    1))
+          (if tls-use-os-certs
+              (mosquitto_int_option (mosq client)
+                                    'MOSQ_OPT_TLS_USE_OS_CERTS
+                                    1))
+          (if tls-alpn
+              (mosquitto_string_option (mosq client)
+                                       'MOSQ_OPT_TLS_ALPN
+                                       tls-alpn))))
     (if socks5-host
-	(mosquitto_socks5_set (mosq client)
-			      socks5-host
-			      (or socks5-port 1080)
-			      (or socks5-username %null-pointer)
-			      (or socks5-password %null-pointer)))
+        (mosquitto_socks5_set (mosq client)
+                              socks5-host
+                              (or socks5-port 1080)
+                              (or socks5-username %null-pointer)
+                              (or socks5-password %null-pointer)))
     (if (or reconnect-delay reconnect-delay-max reconnect-exp-backoff)
-	(mosquitto_reconnect_delay_set (mosq client)
-				       (or reconnect-delay 1)
-				       (or reconnect-delay-max 10)
-				       reconnect-exp-backoff))
+        (mosquitto_reconnect_delay_set (mosq client)
+                                       (or reconnect-delay 1)
+                                       (or reconnect-delay-max 10)
+                                       reconnect-exp-backoff))
     (if tcp-nodelay
-	(mosquitto_int_option (mosq client)
-			      'MOSQ_OPT_TCP_NODELAY
-			      1))
+        (mosquitto_int_option (mosq client)
+                              'MOSQ_OPT_TCP_NODELAY
+                              1))
     (if bind-address
-	(mosquitto_connect_bind (mosq client) host port keepalive bind-address)
-	(mosquitto_connect (mosq client) host port keepalive)))
+        (mosquitto_connect_bind (mosq client) host port keepalive bind-address)
+        (mosquitto_connect (mosq client) host port keepalive)))
   (apply connect args))
 
 (define-method (disconnect (client <mosquitto-client>))
@@ -166,12 +166,12 @@
   (define* (publish #:key (qos 0) retain)
     (let ((mid (make-cdata (cbase 'int))))
       (mosquitto_publish (mosq client)
-			 (cdata& mid)
-			 topic
-			 (bytevector-length (string->utf8 payload))
-			 payload
-			 qos
-			 (bool->int retain))
+                         (cdata& mid)
+                         topic
+                         (bytevector-length (string->utf8 payload))
+                         payload
+                         qos
+                         (bool->int retain))
       (cdata-ref mid))) ; return message id
   (apply publish args))
 
@@ -248,11 +248,11 @@
 
 (define (publish-enum-type! enum-type)
   (let* ((type-info (ctype-info enum-type))
-	 (unwrap (cenum-numf type-info))
-	 (interface (module-public-interface (current-module))))
+         (unwrap (cenum-numf type-info))
+         (interface (module-public-interface (current-module))))
     (for-each (lambda (name)
-		(module-define! interface name (unwrap name)))
-	      (cenum-syml type-info))))
+                (module-define! interface name (unwrap name)))
+              (cenum-syml type-info))))
 
 (publish-enum-type! enum-mosq_err_t)
 

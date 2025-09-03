@@ -55,7 +55,7 @@ Guile MQTT provides bindings for the libmosquitto MQTT client library.
 @menu
 * The mosquitto client object::
 * Connecting and disconnecting::
-* Publishing@comma{} subscribing and unsubscribing::
+* Publishing, subscribing and unsubscribing: Publishing subscribing and unsubscribing.
 * Network loop::
 * Callbacks::
 @end menu
@@ -208,7 +208,7 @@ enabled.
 Disconnect the specified client from the broker.
 @end deffn
 
-@node Publishing@comma{} subscribing and unsubscribing
+@node Publishing subscribing and unsubscribing
 @subsection Publishing, subscribing and unsubscribing
 
 @deffn {Procedure} publish client topic payload [#:qos] [#:retain]
