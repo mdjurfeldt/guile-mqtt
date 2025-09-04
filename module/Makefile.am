@@ -34,7 +34,7 @@ $(guile_install_go_files): install-nobase_modDATA
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$(srcdir)/$<"
 
 ffi/mosquitto.scm: ffi/mosquitto-nyacc.ffi
-	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile-ffi -o mosquitto-nyacc.scm "$<"
+	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile-ffi -X -o $(srcdir)/ffi/mosquitto-nyacc.scm "$<"
 	sed -e 's/(nyacc foreign/(mosquitto foreign/' <$(srcdir)/ffi/mosquitto-nyacc.scm >"$(srcdir)/$@"
 
 $(COPIED_SOURCES):
